@@ -1,0 +1,222 @@
+Task2
+
+Read the following data set:
+https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data
+
+#1. Create an sqlalchemy engine using a sample from the data set
+In [3]:
+
+
+from sqlalchemy import create_engine
+engine = create_engine('sqlite:///sample', echo=True)
+
+
+
+In [4]:
+
+
+conn = engine.connect()
+
+
+
+2018-07-24 18:22:40,021 INFO sqlalchemy.engine.base.Engine SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2018-07-24 18:22:40,031 INFO sqlalchemy.engine.base.Engine ()
+2018-07-24 18:22:40,033 INFO sqlalchemy.engine.base.Engine SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2018-07-24 18:22:40,034 INFO sqlalchemy.engine.base.Engine ()
+In [6]:
+
+
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+metadata = MetaData()
+employee = Table('employee', metadata,
+              Column('id', Integer, primary_key=True),
+              Column('age', Integer),
+              Column('workclass', String),
+              Column('fnlwgt', Integer),
+              Column('education', String),
+              Column('education_num', Integer),
+              Column('marital_status', String),
+              Column('occupation', String),
+              Column('relationship', String),
+              Column('rasexce', String),
+              Column('sex', String),
+              Column('capital_gain', Integer),
+              Column('capital_loss', Integer),
+              Column('hours_per_week', Integer),
+              Column('native_country', String),
+              Column('salary', String),
+)
+#metadata.create_all(engine) // view the query
+
+
+
+In [9]:
+
+
+
+ins1 = employee.insert().values(id=1, age=39,workclass='State-gov', fnlwgt=77516
+                               ,education='Bachelors', education_num=13,marital_status='Never-married', occupation='Adm-clerical'
+                            ,relationship='Not-in-family', rasexce='white',sex='Male', capital_gain=2174
+                              ,capital_loss=0, hours_per_week=40,native_country='united-states', salary='<=50k'
+                              )
+ins2 = employee.insert().values(id=2, age=50,workclass='Self-emp-not-inc', fnlwgt=83311
+                               ,education='Bachelors', education_num=13,marital_status='Married-civ-spouse', occupation='Exec-managerial'
+                              ,relationship='Husband', rasexce='white',sex='Male', capital_gain=0
+                              ,capital_loss=0, hours_per_week=13,native_country='united-states', salary='<=50k'
+                              )
+ins3 = employee.insert().values(id=3, age=38,workclass='Private', fnlwgt=215646
+                               ,education='HS-grad', education_num=9,marital_status='Divorced', occupation='Handlers-cleaners'
+                              ,relationship='Not-in-family', rasexce='white',sex='Male', capital_gain=0
+                              ,capital_loss=0, hours_per_week=40,native_country='united-states', salary='<=50k'
+                              )
+#str(ins1)
+#ins1.compile().params  # to view the data to be inserted
+conn.execute(ins1)
+conn.execute(ins2)
+conn.execute(ins3)
+
+
+
+2018-07-24 18:27:22,241 INFO sqlalchemy.engine.base.Engine INSERT INTO employee (id, age, workclass, fnlwgt, education, education_num, marital_status, occupation, relationship, rasexce, sex, capital_gain, capital_loss, hours_per_week, native_country, salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2018-07-24 18:27:22,244 INFO sqlalchemy.engine.base.Engine (2, 50, 'Self-emp-not-inc', 83311, 'Bachelors', 13, 'Married-civ-spouse', 'Exec-managerial', 'Husband', 'white', 'Male', 0, 0, 13, 'united-states', '<=50k')
+2018-07-24 18:27:22,263 INFO sqlalchemy.engine.base.Engine COMMIT
+2018-07-24 18:27:22,423 INFO sqlalchemy.engine.base.Engine INSERT INTO employee (id, age, workclass, fnlwgt, education, education_num, marital_status, occupation, relationship, rasexce, sex, capital_gain, capital_loss, hours_per_week, native_country, salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2018-07-24 18:27:22,424 INFO sqlalchemy.engine.base.Engine (3, 38, 'Private', 215646, 'HS-grad', 9, 'Divorced', 'Handlers-cleaners', 'Not-in-family', 'white', 'Male', 0, 0, 40, 'united-states', '<=50k')
+2018-07-24 18:27:22,426 INFO sqlalchemy.engine.base.Engine COMMIT
+Out[9]:
+<sqlalchemy.engine.result.ResultProxy at 0x7de8400>
+In [10]:
+
+
+from sqlalchemy.sql import select
+s = select([employee])
+result = conn.execute(s)
+row = result.fetchall()
+print(row)
+
+
+
+2018-07-24 18:27:46,168 INFO sqlalchemy.engine.base.Engine SELECT employee.id, employee.age, employee.workclass, employee.fnlwgt, employee.education, employee.education_num, employee.marital_status, employee.occupation, employee.relationship, employee.rasexce, employee.sex, employee.capital_gain, employee.capital_loss, employee.hours_per_week, employee.native_country, employee.salary 
+FROM employee
+2018-07-24 18:27:46,171 INFO sqlalchemy.engine.base.Engine ()
+[(1, 49, 'State-gov', 77516, 'Bachelors', 13, 'Married', 'Adm-clerical', 'Not-in-family', 'white', 'Male', 2174, 0, 40, 'united-states', '<=50k'), (2, 50, 'Self-emp-not-inc', 83311, 'Bachelors', 13, 'Married-civ-spouse', 'Exec-managerial', 'Husband', 'white', 'Male', 0, 0, 13, 'united-states', '<=50k'), (3, 38, 'Private', 215646, 'HS-grad', 9, 'Divorced', 'Handlers-cleaners', 'Not-in-family', 'white', 'Male', 0, 0, 40, 'united-states', '<=50k')]
+
+#2. Write two basic update queries
+In [28]:
+
+
+from sqlalchemy import update
+​
+stmt = update(employee).where(employee.c.id==1).values(age=49)
+stmt1 = update(employee).where(employee.c.id==1).values(marital_status='Married')
+conn.execute(stmt)
+conn.execute(stmt1)
+
+
+
+2018-07-24 00:13:16,978 INFO sqlalchemy.engine.base.Engine UPDATE employee SET age=? WHERE employee.id = ?
+2018-07-24 00:13:16,983 INFO sqlalchemy.engine.base.Engine (49, 1)
+2018-07-24 00:13:16,989 INFO sqlalchemy.engine.base.Engine COMMIT
+2018-07-24 00:13:17,147 INFO sqlalchemy.engine.base.Engine UPDATE employee SET marital_status=? WHERE employee.id = ?
+2018-07-24 00:13:17,148 INFO sqlalchemy.engine.base.Engine ('Married', 1)
+2018-07-24 00:13:17,151 INFO sqlalchemy.engine.base.Engine COMMIT
+Out[28]:
+<sqlalchemy.engine.result.ResultProxy at 0x91b8cf8>
+In [13]:
+
+
+s = select([employee])
+result = conn.execute(s)
+row = result.fetchall()
+print(row)
+
+
+
+2018-07-24 19:50:49,561 INFO sqlalchemy.engine.base.Engine SELECT employee.id, employee.age, employee.workclass, employee.fnlwgt, employee.education, employee.education_num, employee.marital_status, employee.occupation, employee.relationship, employee.rasexce, employee.sex, employee.capital_gain, employee.capital_loss, employee.hours_per_week, employee.native_country, employee.salary 
+FROM employee
+2018-07-24 19:50:49,566 INFO sqlalchemy.engine.base.Engine ()
+[(1, 49, 'State-gov', 77516, 'Bachelors', 13, 'Married', 'Adm-clerical', 'Not-in-family', 'white', 'Male', 2174, 0, 40, 'united-states', '<=50k'), (2, 50, 'Self-emp-not-inc', 83311, 'Bachelors', 13, 'Married-civ-spouse', 'Exec-managerial', 'Husband', 'white', 'Male', 0, 0, 13, 'united-states', '<=50k'), (3, 38, 'Private', 215646, 'HS-grad', 9, 'Divorced', 'Handlers-cleaners', 'Not-in-family', 'white', 'Male', 0, 0, 40, 'united-states', '<=50k')]
+
+#3. Write two delete queries
+In [22]:
+
+
+stmt1=employee.delete().where(employee.c.id==1)
+stmt2=employee.delete().where(employee.c.id==2 and employee.c.sex=='Male')
+conn.execute(stmt1)
+conn.execute(stmt2)
+
+
+
+2018-07-24 19:55:24,575 INFO sqlalchemy.engine.base.Engine DELETE FROM employee WHERE employee.id = ?
+2018-07-24 19:55:24,576 INFO sqlalchemy.engine.base.Engine (1,)
+2018-07-24 19:55:24,579 INFO sqlalchemy.engine.base.Engine COMMIT
+2018-07-24 19:55:24,745 INFO sqlalchemy.engine.base.Engine DELETE FROM employee WHERE employee.id = ?
+2018-07-24 19:55:24,746 INFO sqlalchemy.engine.base.Engine (2,)
+2018-07-24 19:55:24,749 INFO sqlalchemy.engine.base.Engine COMMIT
+Out[22]:
+<sqlalchemy.engine.result.ResultProxy at 0x7e3b3c8>
+In [23]:
+
+
+s = select([employee])
+result = conn.execute(s)
+row = result.fetchall()
+print(row)
+
+
+
+2018-07-24 19:55:35,101 INFO sqlalchemy.engine.base.Engine SELECT employee.id, employee.age, employee.workclass, employee.fnlwgt, employee.education, employee.education_num, employee.marital_status, employee.occupation, employee.relationship, employee.rasexce, employee.sex, employee.capital_gain, employee.capital_loss, employee.hours_per_week, employee.native_country, employee.salary 
+FROM employee
+2018-07-24 19:55:35,109 INFO sqlalchemy.engine.base.Engine ()
+[(3, 38, 'Private', 215646, 'HS-grad', 9, 'Divorced', 'Handlers-cleaners', 'Not-in-family', 'white', 'Male', 0, 0, 40, 'united-states', '<=50k')]
+
+#4. Write two filter queries
+In [24]:
+
+
+from sqlalchemy.orm import sessionmaker
+Session = sessionmaker(bind=engine)
+session = Session()
+
+
+
+In [54]:
+
+
+stmt1= session.query(employee).filter(employee.c.id=='Male').first()
+stmt2= session.query(employee).filter(employee.c.hours_per_week==45).first()
+
+
+
+2018-07-24 20:49:51,001 INFO sqlalchemy.engine.base.Engine SELECT employee.id AS employee_id, employee.age AS employee_age, employee.workclass AS employee_workclass, employee.fnlwgt AS employee_fnlwgt, employee.education AS employee_education, employee.education_num AS employee_education_num, employee.marital_status AS employee_marital_status, employee.occupation AS employee_occupation, employee.relationship AS employee_relationship, employee.rasexce AS employee_rasexce, employee.sex AS employee_sex, employee.capital_gain AS employee_capital_gain, employee.capital_loss AS employee_capital_loss, employee.hours_per_week AS employee_hours_per_week, employee.native_country AS employee_native_country, employee.salary AS employee_salary 
+FROM employee 
+WHERE employee.id = ?
+ LIMIT ? OFFSET ?
+2018-07-24 20:49:51,012 INFO sqlalchemy.engine.base.Engine ('Male', 1, 0)
+2018-07-24 20:49:51,018 INFO sqlalchemy.engine.base.Engine SELECT employee.id AS employee_id, employee.age AS employee_age, employee.workclass AS employee_workclass, employee.fnlwgt AS employee_fnlwgt, employee.education AS employee_education, employee.education_num AS employee_education_num, employee.marital_status AS employee_marital_status, employee.occupation AS employee_occupation, employee.relationship AS employee_relationship, employee.rasexce AS employee_rasexce, employee.sex AS employee_sex, employee.capital_gain AS employee_capital_gain, employee.capital_loss AS employee_capital_loss, employee.hours_per_week AS employee_hours_per_week, employee.native_country AS employee_native_country, employee.salary AS employee_salary 
+FROM employee 
+WHERE employee.hours_per_week = ?
+ LIMIT ? OFFSET ?
+2018-07-24 20:49:51,019 INFO sqlalchemy.engine.base.Engine (45, 1, 0)
+
+#5. Write two function queries
+In [59]:
+
+
+from sqlalchemy import func
+stmt1 = session.query(func.count('*')).select_from(employee).scalar()
+stmt2 = session.query(func.count(employee.c.id)).scalar()
+print(stmt1)
+print(stmt2)
+
+
+
+2018-07-24 20:56:19,839 INFO sqlalchemy.engine.base.Engine SELECT count(?) AS count_1 
+FROM employee
+2018-07-24 20:56:19,849 INFO sqlalchemy.engine.base.Engine ('*',)
+2018-07-24 20:56:19,853 INFO sqlalchemy.engine.base.Engine SELECT count(employee.id) AS count_1 
+FROM employee
+2018-07-24 20:56:19,855 INFO sqlalchemy.engine.base.Engine ()
+1
+1
